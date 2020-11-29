@@ -1,0 +1,30 @@
+#!/bin/sh
+
+LAN=eth0
+INET=eth1
+VPN=tun0
+
+iptables -F
+iptables -F -t nat
+
+iptables --policy FORWARD DROP
+
+iptables -A FORWARD -p icmp -j ACCEPT
+
+iptables -A FORWARD -i $VPN -j ACCEPT
+iptables -A FORWARD -o $VPN -j ACCEPT
+
+iptables -t nat -A POSTROUTING -o $INET -j MASQUERADE
+
+iptables -A FORWARD -m state --state ESTABLISHED -i $INET -j ACCEPT
+
+iptables -t nat -A PREROUTING -p tcp --dport 2500 -d 0.0.0.0/0 -j DNAT --to 10.10.4.10:25
+iptables -t nat -A PREROUTING -p tcp --dport 2501 -d 0.0.0.0/0 -j DNAT --to 10.10.4.20:25
+iptables -t nat -A PREROUTING -p tcp --dport 2502 -d 0.0.0.0/0 -j DNAT --to 10.10.4.30:25
+
+iptables -t nat -A PREROUTING -p tcp --dport 8080 -d 0.0.0.0/0 -j DNAT --to 10.10.4.10:80
+iptables -t nat -A PREROUTING -p tcp --dport 8081 -d 0.0.0.0/0 -j DNAT --to 10.10.4.20:80
+iptables -t nat -A PREROUTING -p tcp --dport 8082 -d 0.0.0.0/0 -j DNAT --to 10.10.4.30:80
+
+iptables -A FORWARD -s 10.10.4.0/24 -p tcp --dport 80 -j ACCEPT
+iptables -A FORWARD -d 0.0.0.0/0 -j ACCEPT

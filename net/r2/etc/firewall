@@ -1,0 +1,20 @@
+#!/bin/sh
+
+LAN=eth0
+INET=eth1
+VPN=tun0
+
+iptables -F
+
+iptables -F -t nat
+
+iptables --policy FORWARD DROP
+
+iptables -A FORWARD -p icmp -j ACCEPT
+
+iptables -A FORWARD -i $VPN -j ACCEPT
+iptables -A FORWARD -o $VPN -j ACCEPT
+
+iptables -t nat -A POSTROUTING -o $INET -j MASQUERADE
+
+iptables -A FORWARD -m state --state ESTABLISHED -i $INET -j ACCEPT
