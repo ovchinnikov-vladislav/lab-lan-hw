@@ -15,38 +15,236 @@
 
 \section{Получение адреса по DHCP}
 
-Где что дампим (дампить с -tenv -s 1000).
+Для изучения работы протокола DHCP в случае выдачи случайного IP-адреса был запущен DHCP-сервер на маршрутизаторе \textbf{r2}. Данный сервер настроен так, чтобы клиенты получали динамические IP-адреса из диапазона, заданного в конфигурационном файле.
 
+Конфигурационный файл DHCP-сервера на маршрутизаторе \textbf{r2}:
 \begin{Verbatim}
-получение "случайного" адреса
+subnet 172.16.0.0 netmask 255.255.0.0 {}
+
+subnet 10.20.0.0 netmask 255.255.0.0
+{
+  range 10.20.0.2 10.20.0.200;
+  option routers 10.20.0.1;
+  option domain-name-servers 10.20.0.1;
+}
 \end{Verbatim}
 
-Где что дампим.
+Дамп собирался при помощи программы \textbf{tcpdump} на маршрутизаторе \textbf{r2}, запущенной с параметрами \textbf{-tenv -s 1000}.
 
 \begin{Verbatim}
-получение "фиксированого" адреса
+10:10:10:10:10:ee > ff:ff:ff:ff:ff:ff, ethertype IPv4 (0x0800), length 342: (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328) 0.0.0.0.68 > 255.255.255.255.67: BOOTP/DHCP, Request from 10:10:10:10:10:ee, length 300, xid 0x7b8f9a6c, Flags [none]
+	  Client-Ethernet-Address 10:10:10:10:10:ee
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Discover
+	    Parameter-Request Option 55, length 12: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+3a:40:ee:31:9e:cd > 10:10:10:10:10:ee, ethertype IPv4 (0x0800), length 342: (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328) 10.20.0.1.67 > 10.20.0.2.68: BOOTP/DHCP, Reply, length 300, xid 0x7b8f9a6c, Flags [none]
+	  Your-IP 10.20.0.2
+	  Client-Ethernet-Address 10:10:10:10:10:ee
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Offer
+	    Server-ID Option 54, length 4: 10.20.0.1
+	    Lease-Time Option 51, length 4: 43200
+	    Subnet-Mask Option 1, length 4: 255.255.0.0
+	    Default-Gateway Option 3, length 4: 10.20.0.1
+	    Domain-Name-Server Option 6, length 4: 10.20.0.1
+10:10:10:10:10:ee > ff:ff:ff:ff:ff:ff, ethertype IPv4 (0x0800), length 342: (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328) 0.0.0.0.68 > 255.255.255.255.67: BOOTP/DHCP, Request from 10:10:10:10:10:ee, length 300, xid 0x7b8f9a6c, Flags [none]
+	  Client-Ethernet-Address 10:10:10:10:10:ee
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Request
+	    Server-ID Option 54, length 4: 10.20.0.1
+	    Requested-IP Option 50, length 4: 10.20.0.2
+	    Parameter-Request Option 55, length 12: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+3a:40:ee:31:9e:cd > 10:10:10:10:10:ee, ethertype IPv4 (0x0800), length 342: (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328) 10.20.0.1.67 > 10.20.0.2.68: BOOTP/DHCP, Reply, length 300, xid 0x7b8f9a6c, Flags [none]
+	  Your-IP 10.20.0.2
+	  Client-Ethernet-Address 10:10:10:10:10:ee
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: ACK
+	    Server-ID Option 54, length 4: 10.20.0.1
+	    Lease-Time Option 51, length 4: 43200
+	    Subnet-Mask Option 1, length 4: 255.255.0.0
+	    Default-Gateway Option 3, length 4: 10.20.0.1
+	    Domain-Name-Server Option 6, length 4: 10.20.0.1
 \end{Verbatim}
 
+Для изучения работы протокола DHCP был запущен DHCP-сервер на маршрутизаторе \textbf{r1}. Данный сервер настроен так, чтобы клиенты получали статические IP-адреса, заданные в конфигурационном файле.
+
+Конфигурационный файл данного DHCP-сервера, запущенного на маршрутизаторе \textbf{r1}:
+\begin{Verbatim}
+subnet 172.16.0.0 netmask 255.255.0.0 {}
+
+subnet 10.10.0.0 netmask 255.255.0.0
+{
+  range 10.10.0.2 10.10.10.200;
+  option routers 10.10.0.1;
+  option domain-name-servers 10.10.0.1;
+}
+
+host ws11 {
+    hardware ethernet 10:10:10:10:10:BA;
+    fixed-address 10.10.1.1;
+}
+
+host ws12 {
+    hardware ethernet 10:10:10:10:10:BB;
+    fixed-address 10.10.2.1;
+}
+
+host ws13 {
+    hardware ethernet 10:10:10:10:10:BC;
+    fixed-address 10.10.3.1;
+}
+
+
+host ws14 {
+    hardware ethernet 10:10:10:10:10:BD;
+    fixed-address 10.10.4.1;
+}
+host s11 {
+    hardware ethernet 10:10:10:10:20:AA;
+    fixed-address 10.10.4.10;
+}
+
+host s12 {
+    hardware ethernet 10:10:10:10:20:BB;
+    fixed-address 10.10.4.20;
+}
+
+host s13 {
+    hardware ethernet 10:10:10:10:20:CC;
+    fixed-address 10.10.4.30;
+}
+\end{Verbatim}
+
+Дамп собирался при помощи программы \textbf{tcpdump} на маршрутизаторе \textbf{r1}, запущенной с параметрами \textbf{-tenv -s 1000}.
+
+Получение фиксированного адреса с помощью DHCP:
+\begin{Verbatim}
+10:10:10:10:20:cc > ff:ff:ff:ff:ff:ff, ethertype IPv4 (0x0800), length 342: (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328) 0.0.0.0.68 > 255.255.255.255.67: BOOTP/DHCP, Request from 10:10:10:10:20:cc, length 300, xid 0xb391540a, Flags [none]
+	  Client-Ethernet-Address 10:10:10:10:20:cc
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Discover
+	    Requested-IP Option 50, length 4: 10.10.4.30
+	    Parameter-Request Option 55, length 12: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+0e:ab:f8:0c:10:4b > 10:10:10:10:20:cc, ethertype IPv4 (0x0800), length 342: (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328) 10.10.0.1.67 > 10.10.4.30.68: BOOTP/DHCP, Reply, length 300, xid 0xb391540a, Flags [none]
+	  Your-IP 10.10.4.30
+	  Client-Ethernet-Address 10:10:10:10:20:cc
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Offer
+	    Server-ID Option 54, length 4: 10.10.0.1
+	    Lease-Time Option 51, length 4: 43200
+	    Subnet-Mask Option 1, length 4: 255.255.0.0
+	    Default-Gateway Option 3, length 4: 10.10.0.1
+	    Domain-Name-Server Option 6, length 4: 10.10.0.1
+10:10:10:10:20:cc > ff:ff:ff:ff:ff:ff, ethertype IPv4 (0x0800), length 342: (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328) 0.0.0.0.68 > 255.255.255.255.67: BOOTP/DHCP, Request from 10:10:10:10:20:cc, length 300, xid 0xb391540a, Flags [none]
+	  Client-Ethernet-Address 10:10:10:10:20:cc
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: Request
+	    Server-ID Option 54, length 4: 10.10.0.1
+	    Requested-IP Option 50, length 4: 10.10.4.30
+	    Parameter-Request Option 55, length 12: 
+	      Subnet-Mask, BR, Time-Zone, Default-Gateway
+	      Domain-Name, Domain-Name-Server, Option 119, Hostname
+	      Netbios-Name-Server, Netbios-Scope, MTU, Classless-Static-Route
+0e:ab:f8:0c:10:4b > 10:10:10:10:20:cc, ethertype IPv4 (0x0800), length 342: (tos 0x10, ttl 128, id 0, offset 0, flags [none], proto UDP (17), length 328) 10.10.0.1.67 > 10.10.4.30.68: BOOTP/DHCP, Reply, length 300, xid 0xb391540a, Flags [none]
+	  Your-IP 10.10.4.30
+	  Client-Ethernet-Address 10:10:10:10:20:cc
+	  Vendor-rfc1048 Extensions
+	    Magic Cookie 0x63825363
+	    DHCP-Message Option 53, length 1: ACK
+	    Server-ID Option 54, length 4: 10.10.0.1
+	    Lease-Time Option 51, length 4: 43200
+	    Subnet-Mask Option 1, length 4: 255.255.0.0
+	    Default-Gateway Option 3, length 4: 10.10.0.1
+	    Domain-Name-Server Option 6, length 4: 10.10.0.1
+\end{Verbatim}
 
 \section{Использование VPN}
 
+На маршрутизаторах \textbf{r1} и \textbf{r2} был настроен OpenVPN с помощью конфигурационного файла и в последствии запущен.
+
+Таблица маршрутизации \textbf{r1} после запуска OpenVPN и работы RIP:
 \begin{Verbatim}
-ip r на маршрутизаторе после VPN и работы RIP
+10.100.100.2 dev tun0  proto kernel  scope link  src 10.100.100.1 
+10.20.0.0/16 via 10.100.100.2 dev tun0  proto zebra  metric 2 
+10.10.0.0/16 dev eth0  proto kernel  scope link  src 10.10.0.1 
+172.16.0.0/16 dev eth1  proto kernel  scope link  src 172.16.1.3 
+default via 172.16.1.2 dev eth1
 \end{Verbatim}
 
+Таблица маршрутизации \textbf{r2} после запуска OpenVPN и работы RIP:
 \begin{Verbatim}
-ip -4 a  на маршрутизаторе
+10.100.100.1 dev tun0  proto kernel  scope link  src 10.100.100.2 
+10.20.0.0/16 dev eth0  proto kernel  scope link  src 10.20.0.1 
+10.10.0.0/16 via 10.100.100.1 dev tun0  proto zebra  metric 2 
+172.16.0.0/16 dev eth1  proto kernel  scope link  src 172.16.1.4 
+default via 172.16.1.2 dev eth1
 \end{Verbatim}
 
+Назначенные IP-адреса на интерфейсах маршрутизатора \textbf{r1}:
 \begin{Verbatim}
-просшулка сообщений RIP на tun0
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue 
+    inet 127.0.0.1/8 scope host lo
+3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    inet 172.16.1.3/16 brd 172.16.255.255 scope global eth1
+4: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    inet 10.10.0.1/16 brd 10.10.255.255 scope global eth0
+5: tun0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 100
+    inet 10.100.100.1 peer 10.100.100.2/32 scope global tun0
 \end{Verbatim}
 
-Проверка работы VPN
-
+Назначение IP-адресов на интерфейсах маршрутизатора \textbf{r2}:
 \begin{Verbatim}
-Трейс с ws21 до s11
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue 
+    inet 127.0.0.1/8 scope host lo
+3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    inet 172.16.1.4/16 brd 172.16.255.255 scope global eth1
+4: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+    inet 10.20.0.1/16 brd 10.20.255.255 scope global eth0
+5: tun0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 100
+    inet 10.100.100.2 peer 10.100.100.1/32 scope global tun0
 \end{Verbatim}
+
+Дамп RIP-сообщений на маршрутизаторе \textbf{r1}:
+\begin{Verbatim}
+ip: (tos 0x0, ttl 1, id 0, offset 0, flags [DF], proto UDP (17), length 52) 10.100.100.1.520 > 224.0.0.9.520: 
+	RIPv2, Response, length: 24, routes: 1
+	  AFI: IPv4:       10.10.0.0/16, tag 0x0000, metric: 1, next-hop: self
+ip: (tos 0x0, ttl 1, id 0, offset 0, flags [DF], proto UDP (17), length 52) 10.100.100.2.520 > 224.0.0.9.520: 
+	RIPv2, Response, length: 24, routes: 1
+	  AFI: IPv4:       10.20.0.0/16, tag 0x0000, metric: 1, next-hop: self
+ip: (tos 0x0, ttl 1, id 0, offset 0, flags [DF], proto UDP (17), length 52) 10.100.100.1.520 > 224.0.0.9.520: 
+	RIPv2, Response, length: 24, routes: 1
+	  AFI: IPv4:       10.10.0.0/16, tag 0x0000, metric: 1, next-hop: self
+ip: (tos 0x0, ttl 1, id 0, offset 0, flags [DF], proto UDP (17), length 52) 10.100.100.2.520 > 224.0.0.9.520: 
+	RIPv2, Response, length: 24, routes: 1
+	  AFI: IPv4:       10.20.0.0/16, tag 0x0000, metric: 1, next-hop: self
+\end{Verbatim}
+
+Была проверена работа VPN с помощью проверки маршрута от \textbf{ws1}, находящегося в сети \textbf{10.20.0.0/16}, к которой подключен маршрутизатор \textbf{r2}, до \textbf{s11}, находящегося в сети \textbf{10.10.0.0/16}, к которой подключен маршрутизатор \textbf{r1}. 
+\begin{Verbatim}
+traceroute to 10.10.4.10 (10.10.4.10), 64 hops max, 40 byte packets
+ 1  10.20.0.1 (10.20.0.1)  12 ms  2 ms  2 ms
+ 2  10.100.100.1 (10.100.100.1)  2 ms  3 ms  2 ms
+ 3  10.10.4.10 (10.10.4.10)  11 ms  2 ms  3 ms
+\end{Verbatim}
+
+Как можно видеть из логов, маршрут проходит через сеть 10.100.100.1, что означает работу VPN.
 
 \section{Правила фильтации пакетов и трансляции пдресов}
 
