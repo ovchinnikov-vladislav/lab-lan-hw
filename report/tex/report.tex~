@@ -607,14 +607,10 @@ Connection closed by foreign host.
 
 Также собирался дамп на маршрутизаторе \textbf{r2} с помощью команды \textbf{tcpdump -i any tcp}:
 \begin{Verbatim}
-IP 10.20.0.2.39471 > h247.net50.bmstu.ru.www: S 220020433:220020433(0) win 5840 
-	<mss 1460,sackOK,timestamp 1276355 0,nop,wscale 1>
-IP 172.16.1.4.39471 > h247.net50.bmstu.ru.www: S 220020433:220020433(0) win 5840 
-	<mss 1460,sackOK,timestamp 1276355 0,nop,wscale 1>
-IP h247.net50.bmstu.ru.www > 172.16.1.4.39471: S 1838432673:1838432673(0) ack 220020434 
-	win 64240 <mss 1460>
-IP h247.net50.bmstu.ru.www > 10.20.0.2.39471: S 1838432673:1838432673(0) ack 220020434 
-	win 64240 <mss 1460>
+IP 10.20.0.2.39471 > h247.net50.bmstu.ru.www: S 220020433:220020433(0) win 5840 <mss 1460,sackOK,timestamp 1276355 0,nop,wscale 1>
+IP 172.16.1.4.39471 > h247.net50.bmstu.ru.www: S 220020433:220020433(0) win 5840 <mss 1460,sackOK,timestamp 1276355 0,nop,wscale 1>
+IP h247.net50.bmstu.ru.www > 172.16.1.4.39471: S 1838432673:1838432673(0) ack 220020434 win 64240 <mss 1460>
+IP h247.net50.bmstu.ru.www > 10.20.0.2.39471: S 1838432673:1838432673(0) ack 220020434 win 64240 <mss 1460>
 IP 10.20.0.2.39471 > h247.net50.bmstu.ru.www: . ack 1 win 5840
 IP 172.16.1.4.39471 > h247.net50.bmstu.ru.www: . ack 1 win 5840
 IP 10.20.0.2.39471 > h247.net50.bmstu.ru.www: P 1:6(5) ack 1 win 5840

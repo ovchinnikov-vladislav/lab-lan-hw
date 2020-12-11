@@ -7,4 +7,3 @@ service quagga restart
 service dnsmasq restart
 systemctl restart isc-dhcp-server
 service dhcp3-server start
-service openvpn start

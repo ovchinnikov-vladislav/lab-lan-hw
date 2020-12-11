@@ -19,10 +19,10 @@ iptables -A FORWARD -p icmp -j ACCEPT
 iptables -A FORWARD -i $VPN -j ACCEPT
 iptables -A FORWARD -o $VPN -j ACCEPT
 
-# SNAT
-iptables -t nat -A POSTROUTING -j SNAT --to-source 172.16.1.4
+# Включение SNAT для маршрутизируемых пакетов, выходящих
+# через eth1. Это правило выполняется после самой маршрутизации
+# (POSTROUTING) и помещается в таблицу правил "nat".
+iptables -t nat -A POSTROUTING -o $INET -j MASQUERADE
 
-# Разрешение TCP
-iptables -A FORWARD -i $INET -o $LAN -p tcp -m conntrack --ctstate NEW -j ACCEPT
-iptables -A FORWARD -i $INET -o $LAN -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-iptables -A FORWARD -i $LAN -o $INET -m conntrack --ctstate NEW,ESTABLISHED,RELATED -j ACCEPT
+# Разрешение пакетов-ответов (они отслеживаются как --state ESTABLISHED)
+iptables -A FORWARD -m state --state ESTABLISHED -i $INET -j ACCEPT
